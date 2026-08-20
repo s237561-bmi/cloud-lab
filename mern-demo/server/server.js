@@ -1,66 +1,86 @@
 const express = require('express');
 const mongoose = require('mongoose');
-require('dotenv').config();
-
-// Câu 35: Khai báo Model Student
-const Student = require('./models/Student');
+const cors = require('cors');
 
 const app = express();
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Kết nối MongoDB Atlas (Câu 34)
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Chuỗi kết nối trực tiếp đến database quanlysinhvien
+const MONGO_URI = 'mongodb+srv://admin:S237561@cluster0.akzuynk.mongodb.net/quanlysinhvien?retryWrites=true&w=majority';
 
-// Câu 22: Route thử nghiệm cho trang chủ
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+// Kết nối MongoDB Atlas
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ Đã kết nối MongoDB Atlas thành công!'))
+  .catch(err => console.error('❌ Lỗi kết nối MongoDB Atlas:', err));
+
+// Schema Sinh Viên
+const studentSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  studentId: { type: String, required: true, unique: true },
+  email: { type: String, required: true }
 });
 
-// Câu 36: GET /api/students - Lấy danh sách sinh viên
+const Student = mongoose.model('Student', studentSchema);
+
+// 1. Route lấy danh sách sinh viên (GET)
 app.get('/api/students', async (req, res) => {
   try {
     const students = await Student.find();
     res.json(students);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi lấy dữ liệu', error: error.message });
   }
 });
 
-// Câu 37: POST /api/students - Thêm sinh viên mới
+// 2. Route thêm sinh viên (POST)
 app.post('/api/students', async (req, res) => {
   try {
-    const newStudent = await Student.create(req.body);
-    res.status(201).json(newStudent);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    const { fullName, name, studentId, mssv, email } = req.body;
+
+    const newStudent = new Student({
+      fullName: fullName || name,
+      studentId: studentId || mssv,
+      email: email
+    });
+
+    await newStudent.save();
+    res.status(201).json({ message: 'Thêm thành công!', data: newStudent });
+  } catch (error) {
+    console.error('Lỗi lưu MongoDB:', error);
+    res.status(500).json({ message: 'Lỗi Database', error: error.message });
   }
 });
 
-// Câu 38: PUT /api/students/:id - Cập nhật sinh viên theo ID
+// 3. Route cập nhật sinh viên theo ID (PUT)
 app.put('/api/students/:id', async (req, res) => {
   try {
+    const { fullName, studentId, email } = req.body;
     const updatedStudent = await Student.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true }
+      { fullName, studentId, email },
+      { new: true } // Trả về document sau khi cập nhật
     );
-    res.json(updatedStudent);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.json({ message: 'Cập nhật thành công!', data: updatedStudent });
+  } catch (error) {
+    console.error('Lỗi cập nhật MongoDB:', error);
+    res.status(500).json({ message: 'Lỗi cập nhật Database', error: error.message });
   }
 });
-
-// Câu 39: DELETE /api/students/:id - Xóa sinh viên theo ID
+// 4. Route xóa sinh viên theo ID (DELETE)
 app.delete('/api/students/:id', async (req, res) => {
   try {
     await Student.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Đã xóa sinh viên thành công' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json({ message: 'Xóa sinh viên thành công!' });
+  } catch (error) {
+    console.error('Lỗi xóa MongoDB:', error);
+    res.status(500).json({ message: 'Lỗi xóa sinh viên!', error: error.message });
   }
 });
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server đang chạy tại port ${PORT}`));
+// Chạy Server
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`Server đang chạy tại http://localhost:${PORT}`);
+});

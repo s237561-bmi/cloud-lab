@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import './App.css';
 
 function App() {
   const [students, setStudents] = useState([]);
@@ -58,7 +59,6 @@ function App() {
     }
   };
 
-  // Hàm xử lý Xóa sinh viên
   const handleDelete = (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa sinh viên này không?')) {
       fetch(`${API}/${id}`, {
@@ -87,75 +87,156 @@ function App() {
     setEmail('');
   };
 
+  const messageClass = msg.startsWith('✅') || msg.startsWith('🗑️')
+    ? 'message success'
+    : msg.startsWith('❌')
+      ? 'message error'
+      : msg.startsWith('Đang')
+        ? 'message info'
+        : '';
+
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: 'auto', color: '#fff' }}>
-      <h2>{editingId ? 'Cập Nhật Sinh Viên' : 'Thêm Sinh Viên'}</h2>
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">S</div>
+          <div>
+            <p className="eyebrow">Student Portal</p>
+            <h1>Quản lý sinh viên</h1>
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <input
-          type="text"
-          placeholder="Họ và tên"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          required
-          style={{ padding: '8px' }}
-        />
-        <input
-          type="text"
-          placeholder="Mã sinh viên"
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
-          required
-          style={{ padding: '8px' }}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: '8px' }}
-        />
-        <button type="submit" style={{ padding: '10px', backgroundColor: editingId ? '#007bff' : 'green', color: '#fff', border: 'none', cursor: 'pointer' }}>
-          {editingId ? 'Lưu Cập Nhật' : 'Thêm Ngay'}
-        </button>
-        {editingId && (
-          <button type="button" onClick={resetForm} style={{ padding: '5px', backgroundColor: '#6c757d', color: '#fff', border: 'none', cursor: 'pointer' }}>
-            Hủy Sửa
+        <div className="summary-card">
+          <span>Tổng số lượng</span>
+          <strong>{students.length}</strong>
+          <small>Học viên</small>
+        </div>
+
+        <div className="status-box">
+          <div className="status-header">
+            <span className="status-dot" />
+            <span>Backend Status</span>
+          </div>
+          <p>{msg || 'Sẵn sàng đồng bộ dữ liệu'}</p>
+        </div>
+      </aside>
+
+      <main className="main-panel">
+        <header className="topbar">
+          <div>
+            <p className="eyebrow muted">Dashboard</p>
+            <h2>{editingId ? 'Cập nhật sinh viên' : 'Thêm sinh viên mới'}</h2>
+          </div>
+          <button type="button" className="chip-button">
+            {students.length} records
           </button>
-        )}
-      </form>
+        </header>
 
-      <p>{msg}</p>
+        <section className="card form-card">
+          <div className="section-title">
+            <h3>Thông tin học viên</h3>
+          </div>
 
-      <h3>Danh Sách Đã Thêm ({students.length})</h3>
-      <table border="1" cellPadding="8" style={{ width: '100%', color: '#fff', borderColor: '#444' }}>
-        <thead>
-          <tr>
-            <th>Họ Tên</th>
-            <th>Mã SV</th>
-            <th>Email</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map((st) => (
-            <tr key={st._id}>
-              <td>{st.fullName}</td>
-              <td>{st.studentId}</td>
-              <td>{st.email}</td>
-              <td style={{ display: 'flex', gap: '5px' }}>
-                <button type="button" onClick={() => handleEdit(st)} style={{ backgroundColor: '#ffc107', border: 'none', padding: '5px 10px', cursor: 'pointer', color: '#000', fontWeight: 'bold' }}>
-                  Sửa
+          <form onSubmit={handleSubmit} className="student-form">
+            <div className="input-row">
+              <label>
+                <span>Họ và tên</span>
+                <input
+                  type="text"
+                  placeholder="Nguyễn Văn A"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="input-row two-col">
+              <label>
+                <span>Mã sinh viên</span>
+                <input
+                  type="text"
+                  placeholder="SV001"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  required
+                />
+              </label>
+
+              <label>
+                <span>Email</span>
+                <input
+                  type="email"
+                  placeholder="student@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="action-row">
+              <button type="submit" className="primary-btn">
+                {editingId ? 'Lưu cập nhật' : 'Thêm ngay'}
+              </button>
+
+              {editingId && (
+                <button type="button" onClick={resetForm} className="secondary-btn">
+                  Hủy sửa
                 </button>
-                <button type="button" onClick={() => handleDelete(st._id)} style={{ backgroundColor: '#dc3545', border: 'none', padding: '5px 10px', cursor: 'pointer', color: '#fff', fontWeight: 'bold' }}>
-                  Xóa
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              )}
+            </div>
+          </form>
+
+          {msg && <p className={messageClass}>{msg}</p>}
+        </section>
+
+        <section className="card table-card">
+          <div className="section-title">
+            <h3>Danh sách sinh viên</h3>
+          </div>
+
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Họ tên</th>
+                  <th>Mã SV</th>
+                  <th>Email</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.length > 0 ? (
+                  students.map((st) => (
+                    <tr key={st._id}>
+                      <td>{st.fullName}</td>
+                      <td>{st.studentId}</td>
+                      <td>{st.email}</td>
+                      <td>
+                        <div className="table-actions">
+                          <button type="button" className="edit-btn" onClick={() => handleEdit(st)}>
+                            Sửa
+                          </button>
+                          <button type="button" className="delete-btn" onClick={() => handleDelete(st._id)}>
+                            Xóa
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="empty-state">
+                      Chưa có sinh viên nào được thêm.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

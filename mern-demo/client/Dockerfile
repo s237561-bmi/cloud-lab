@@ -3,10 +3,13 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-ENV REACT_APP_API_URL=http://localhost:5000
+
+# Thêm dòng này để gán trực tiếp URL Backend khi build Vite
+ENV VITE_API_URL=https://mern-backend-237561.onrender.com
+
 RUN npm run build
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 3000
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

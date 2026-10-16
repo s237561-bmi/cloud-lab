@@ -42,14 +42,25 @@ mongoose.connect(MONGO_URI)
 // ==========================================
 // 3. DEFINITION SCHEMA & MODEL SINH VIÊN
 // ==========================================
+// Schema Sinh Viên (Hỗ trợ linh hoạt cả name/fullName và mssv/studentId)
 const studentSchema = new mongoose.Schema({
-  fullName: { type: String, required: true },
-  studentId: { type: String, required: true, unique: true },
+  fullName: { type: String },
+  name: { type: String },
+  studentId: { type: String },
+  mssv: { type: String },
   email: { type: String, required: true }
 }, { timestamps: true });
 
-const Student = mongoose.model('Student', studentSchema);
+// Tự động đồng bộ dữ liệu trước khi lưu vào Database
+studentSchema.pre('save', function(next) {
+  if (!this.fullName && this.name) this.fullName = this.name;
+  if (!this.name && this.fullName) this.name = this.fullName;
+  if (!this.studentId && this.mssv) this.studentId = this.mssv;
+  if (!this.mssv && this.studentId) this.mssv = this.studentId;
+  next();
+});
 
+const Student = mongoose.model('Student', studentSchema);
 // ==========================================
 // 4. API ROUTES (CRUD OPERATIONS)
 // ==========================================

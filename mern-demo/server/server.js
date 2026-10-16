@@ -15,6 +15,9 @@ const allowedOrigins = [
   'http://localhost:3000'
 ];
 
+app.get('/', (req, res) => {
+  res.send('🚀 MERN Backend Service - Version 1.2 Auto Deploy!');
+});
 app.use(cors({
   origin: function (origin, callback) {
     // Cho phép requests không có origin (như mobile app/curl) hoặc nằm trong danh sách allowedOrigins hoặc trong môi trường dev

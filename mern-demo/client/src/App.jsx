@@ -9,15 +9,21 @@ function App() {
   const [editingId, setEditingId] = useState(null);
   const [msg, setMsg] = useState('');
 
-  const API = '/api/students';
+  // Tự động lấy biến môi trường VITE_API_URL, nếu không có sẽ gán thẳng URL Backend Render
+  const BASE_URL = import.meta.env.VITE_API_URL || 'https://mern-backend-237561.onrender.com';
+  const API = `${BASE_URL.replace(/\/$/, '')}/api/students`;
 
   const loadData = () => {
     fetch(API)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) setStudents(data);
         else if (data.students) setStudents(data.students);
         else if (data.data) setStudents(data.data);
+        setMsg('✅ Đã kết nối Backend!');
       })
       .catch(() => setMsg('❌ Chưa kết nối được Backend!'));
   };
@@ -75,9 +81,9 @@ function App() {
 
   const handleEdit = (student) => {
     setEditingId(student._id);
-    setFullName(student.fullName);
-    setStudentId(student.studentId);
-    setEmail(student.email);
+    setFullName(student.fullName || student.name || '');
+    setStudentId(student.studentId || student.mssv || '');
+    setEmail(student.email || '');
   };
 
   const resetForm = () => {
@@ -210,8 +216,8 @@ function App() {
                 {students.length > 0 ? (
                   students.map((st) => (
                     <tr key={st._id}>
-                      <td>{st.fullName}</td>
-                      <td>{st.studentId}</td>
+                      <td>{st.fullName || st.name}</td>
+                      <td>{st.studentId || st.mssv}</td>
                       <td>{st.email}</td>
                       <td>
                         <div className="table-actions">
